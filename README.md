@@ -1,3 +1,4 @@
+Note: This EDA was done for my data science class.
 ## MLB Pitch Clock and Pitcher Performance: An EDA
 
 In this EDA, I investigated the effect of the implementation of the pitch clock in Major League Baseball on pitch quality. I did this with pitch-by-pitch data from the 2022 and 2023 MLB seasons, and attempted to find a relationship between pitch tempo (the time duration between pitches) and pitch velocity and/or spin rate, based on a theory that shortened tempo means greater fatigue. Additionally, I explored the intricacies of pitch tempo and pitch quality and investigated if playing at altitude changes the effect of pitch tempo on pitch velocity.
