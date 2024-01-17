@@ -1,0 +1,87 @@
+---
+title: "Progress Memo 1"
+subtitle: |
+  | Final Project 
+  | Data Science 1 with R (STAT 301-1)
+author: "Thomas Stanton"
+date: today
+
+format:
+  html:
+    toc: true
+    embed-resources: true
+    
+execute:
+  echo: false
+  warning: false
+
+from: markdown+emoji 
+---
+
+
+::: {.callout-tip icon=false}
+
+## Github Repo Link
+
+[https://github.com/stat301-1-2023-fall/final-project-1-Tstanton23.git](https://github.com/stat301-1-2023-fall/final-project-1-Tstanton23.git)
+
+:::
+
+## Data source
+
+I plan on using a dataset of play-by-play data from every single game of the 2022 MLB season. This data has been sourced from the MLB Stats API via Bill Petti's BaseballR package.^[[https://billpetti.github.io/baseballr/](https://billpetti.github.io/baseballr/).] I have added the dataset to my personal Final Project folder and added its name to the .gitignore file, as it is 817.5 MB.
+
+## Why this data
+
+I chose this data for two reasons: first, I am a huge baseball fan and I'd love to explore the complexities of a full season of action. Second, I am currently completing my senior thesis for MMSS and this dataset plays a large part in my research. For my thesis, I plan on using this data, as well as its counterpart dataset from the 2023 seaso, to see how the institution of the pitch clock and the subsequent increase in game speed affected pitchers and their pitch velocities and spin rate. This EDA will help me understand the massive dataset that I'll be using for my research.
+
+## Data quality & complexity check
+
+I have already read in my dataset, using this code:^[To read in the data, I followed this video from Bill Petti, author of the BaseballR package: [https://youtu.be/R_fdMGz7mZg?si=k_Ku4psh4FvgSCyu](https://youtu.be/R_fdMGz7mZg?si=k_Ku4psh4FvgSCyu)]
+
+```{r}
+#| eval: FALSE
+#| echo: TRUE
+
+# Loading packages
+library(devtools)
+library(tidyverse)
+library(purrr)
+
+devtools::install_github(repo = "BillPetti/baseballr")
+library(baseballr)
+
+# Preparing to load dataset
+game_info <- baseballr::get_game_info_sup_petti()
+
+game_pks <- game_info |> 
+  filter(substr(game_date, 1, 4) == 2022, status_ind == "F",
+         game_type == "R")
+
+num_of_games <- nrow(game_pks)
+
+# Reading in dataset
+pbp_2022_payload <- map_df(.x = seq_along(game_pks$game_pk),
+                           ~{
+                             
+                             message(paste0('Grabbing pbp for game ', .x, ' of ', num_of_games))
+                             
+                             payload <- get_pbp_mlb(game_pk = game_pks$game_pk[.x])
+                             
+                             return(payload)
+                           })
+
+pbp_2022_payload |> 
+  write_csv("pbp_2022_payload.csv")
+```
+
+The resulting dataset contains 165 variables on every single pitch, substitution, non-pitch action throughout the entire 2022 regular season, for a total of 778836 observations. There are 15 variables that are entirely missing, while only 58 of the 165 variables have no missingness. In many cases, though, this is to be expected, because non-pitch actions like substitutions, injuries, or ejections do not have measurable pitch data. Given that I will be focusing on pitching for my research, much of this missingness is unimportant. Upon closer inspection, less than 3% of all pitches are missing a pitch-specific variable. The variables range from categorical (team names and game-state booleans, for example) to numerical (pitch velocity and score).
+
+## Potential data issues
+
+The dataset as a whole is tidy, with every pitch and non-pitch action represented by a separate row, and almost every variable in a separate column. I do anticipate that the timestamps, which are accurate to the second, will take some data cleaning to get them into a form where I can measure the time between pitches. I will also need to deal with the thousands of pitch observations that are missing at least one variable.
+
+
+## Misc
+
+Given that this dataset will be used in both my thesis and this project, I expect to do in-depth analysis and plan on turning in an extensive EDA report. For my thesis, I have to complete a review of literature by November 10th, and then I will be able to focus all of my energy and attention on the data work.

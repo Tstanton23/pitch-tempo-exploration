@@ -1,0 +1,32 @@
+park_name,city,state,latitude,longitude,altitude,home_team,abbr
+Angel Stadium of Anaheim,Anaheim,CA,33.80029,-117.882685,154,Los Angeles Angels,LAA
+SunTrust Park,Atlanta,GA,33.89127,-84.4681,981,Atlanta Braves,ATL
+Oriole Park at Camden Yards,Baltimore,MD,39.283944,-76.621572,35,Baltimore Orioles,BAL
+Fenway Park,Boston,MA,42.346561,-71.097337,16,Boston Red Sox,BOS
+Wrigley Field,Chicago,IL,41.948314,-87.655397,599,Chicago Cubs,CHC
+Guarantee Rate Park,Chicago,IL,41.829892,-87.633703,594,Chicago White Sox,CHW
+Great American Ballpark,Cincinnati,OH,39.097213,-84.506483,489,Cincinnati Reds,CIN
+Progressive Field,Cleveland,OH,41.496005,-81.685326,673,Cleveland Guardians,CLE
+Coors Field,Denver,CO,39.756175,-104.99413,5197,Colorado Rockies,COL
+Comerica Park,Detroit,MI,42.339063,-83.048627,602,Detroit Tigers,DET
+Minute Maid Park,Houston,TX,29.757041,-95.355429,20,Houston Astros,HOU
+Kauffman Stadium,Kansas City,MO,39.051604,-94.480149,886,Kansas City Royals,KCR
+Olympic Stadium,London,EN,51.5365,-0.0098,206,NA,NA
+Dodger Stadium,Los Angeles,CA,34.073878,-118.239951,501,Los Angeles Dodgers,LAD
+Marlins Park,Miami,FL,25.778165,-80.219541,6,Miami Marlins,MIA
+Miller Park,Milwaukee,WI,43.028232,-87.970966,602,Milwaukee Brewers,MIL
+Target Field,Minneapolis,MN,44.981749,-93.278026,840,Minnesota Twins,MIN
+Citi Field,New York,NY,40.757134,-73.84584,13,New York Mets,NYM
+New Yankee Stadium,New York,NY,40.829586,-73.926413,11,New York Yankees,NYY
+Oakland-Alameda County Coliseum,Oakland,CA,37.751619,-122.200451,0,Oakland Athletics,OAK
+Citizens Bank Park,Philadelphia,PA,39.906109,-75.166485,19,Philadelphia Phillies,PHI
+Chase Field,Phoenix,AZ,33.44542,-112.066793,1059,Arizona Diamondbacks,ARI
+PNC Park,Pittsburgh,PA,40.446835,-80.005683,724,Pittsburgh Pirates,PIT
+Petco Park,San Diego,CA,32.70753,-117.157056,14,San Diego Padres,SDP
+T-Mobile Park,Seattle,WA,47.591443,-122.332283,17,Seattle Mariners,SEA
+Oracle Park,San Francisco,CA,37.778324,-122.389221,8,San Francisco Giants,SFG
+Busch Stadium III,St. Louis,MO,38.622622,-90.192841,438,St. Louis Cardinals,STL
+Tropicana Field,St. Petersburg,FL,27.768254,-82.653431,41,Tampa Bay Rays,TBR
+Rogers Centre,Toronto,ONT,43.641256,-79.389054,268,Toronto Blue Jays,TOR
+Nationals Park,Washington,DC,38.872987,-77.007435,23,Washington Nationals,WSN
+Globe Life Park,Arlington,TX,32.7512802,-97.082504,541,Texas Rangers,TEX

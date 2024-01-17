@@ -1,0 +1,193 @@
+---
+title: "MLB Pitch Clock and Pitcher Performance: An EDA"
+subtitle: |
+  | Executive Summary
+  | Final Project 
+  | Data Science 1 with R (STAT 301-1)
+author: "Thomas Stanton"
+date: today
+
+format:
+  html:
+    toc: true
+    embed-resources: true
+    
+execute:
+  echo: false
+  warning: false
+
+from: markdown+emoji 
+---
+
+```{r}
+#| label: loading packages and data
+#| echo: false
+
+# loading packages
+library(tidyverse)
+library(baseballr)
+library(naniar)
+library(mlbplotR)
+library(ggrepel)
+library(DT)
+
+# loading data
+combined_pitch_data <- read_csv("data/combined_pitch_data.csv")
+altitude_data <- read_csv("data/altitude_data.csv")
+```
+
+
+::: {.callout-tip icon=false}
+
+## Github Repo Link
+
+[https://github.com/stat301-1-2023-fall/final-project-1-Tstanton23.git](https://github.com/stat301-1-2023-fall/final-project-1-Tstanton23.git)
+
+:::
+
+
+## Introduction
+
+In the 2023 season, MLB instituted the use of a pitch clock, which sped up the game dramatically by shortening the time in between pitches, but potentially increasing fatigue. In this EDA, I investigate if the institution of the pitch clock led to decreased performance in pitchers as measured by spin rate and pitch velocity. I also investigate how altitude may change the effect of pitch tempo on pitch quality.
+
+
+## Data Overview & Quality
+
+The datasets for this analysis come from MLB, and contain nearly 1.6 million pitch and non-pitch actions from the 2022 and 2023 season. While relatively tidy, the data did need to be reorganized and combined into one file, and I did need to create several key variables, including `pitch_tempo`. I also employed a dataset of home ballparks and their elevation in my analysis.
+
+
+## Pitch Tempo
+
+First, I assessed the true affect of the pitch clock on pitch_tempo, defined as the duration (in seconds) in between pitches. Taking into account the nuances of the rule, I found that time between pitches and at-bats dropped across the board. The following density plot demonstrates, at the highest level, how successful the pitch clock was:
+
+```{r}
+#| echo: false
+
+## density distribution by year
+combined_pitch_data |> 
+  filter(isPitch) |> 
+  ggplot(aes(pitch_tempo, group = as.factor(year)))+
+  geom_density(alpha = 0.5, aes(color = as.factor(year), fill = as.factor(year))) +
+  xlim(0, 60) +
+  labs(title = "Pitch tempo density in 2022 and 2023 MLB seasons",
+       subtitle = "Pitch tempo is time (in seconds) between start of pitch and end of previous pitch",
+       x = "Pitch Tempo (in seconds)",
+       y = NULL,
+       group = "Year",
+       color = "Year",
+       fill = "Year") +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+I also investigated which pitchers had the highest and lowest pitch tempo, and who changed their tempo the most in 2023. I found that high-leverage relievers tended to be the slowest workers, while position players pitching had the fastest tempo by far. I also found that those same high-leverage relievers were the ones who saw their average pitch tempo decrease the most due to the pitch clock.
+
+
+## Pitch Quality
+
+I also explored pitch velocity and spin rate and how those two variables interact. After separating the data by pitch type, I investigated the relationship between pitch velocity and spin rate, finding nothing out of the ordinary. I also found that there was no obvious league-wide change in average velocity or average spin rate between 2022 and 2023, when the pitch clock was implemented.
+
+
+## Effect of Pitch Tempo on Pitch Quality
+
+Finally, I looked into the relationship between pitch tempo and the two measures of pitch quality. I constructed a number of scatterplots, grouped by pitch type, which graphed each qualified pitcher's change in average pitch tempo and velocity/spin rate between the two seasons. The scatterplots and subsequent regressions found there to be no real relationship between the change in average pitch tempo and the change in our metrics of pitch quality.
+
+## Interaction with Altitude
+
+Although the season-average regression proved to be futile, a pitcher fixed-effects model ended up having more promising results. I began by investigating the effect of altitude on pitch tempo's relationship with velocity, especially at Coors Field in Denver, a large outlier in terms of elevation. While I was unable to show any real evidence of a "Coors effect" on fatigue, I did identify a consistently positive and significant relationship between pitch tempo and velocity when applying pitcher fixed effects. The results of this regression are shown below:
+
+```{r}
+#| echo: false
+#| message: false
+
+# function that, using semi_join, gives only qualified pitchers based on number of pitches and given condition
+qualified_pitchers <- function(data, value, conditions = isPitch) {
+  
+  data |> 
+  semi_join(
+    combined_pitch_data |> 
+    filter({{conditions}}) |> 
+    summarize(
+       n = n(),
+       .by = c(matchup.pitcher.fullName, year)
+    ) |> 
+    pivot_wider(names_from = "year",
+                values_from = "n") |>
+    filter(`2022` > {{value}},
+           `2023` > {{value}})
+)
+
+}
+
+pitch_codes <- combined_pitch_data |> 
+  filter(isPitch) |> 
+  count(details.type.description, details.type.code) |> 
+  drop_na() |> 
+  arrange(desc(n)) |> 
+  filter(n > 25000) |>
+  select(details.type.code, details.type.description)
+```
+
+
+```{r}
+#| echo: false
+#| message: false
+
+
+coors_results_table <- tibble(
+  "pitch_type" = character(),
+  "year" = numeric(),
+  "pitch_tempo_coefficient" = numeric(), 
+  "pitch_tempo_p_value" = numeric(),
+  "pitch_tempo_abbr_coefficient" = numeric(),
+  "pitch_tempo_abbr_p_value" = numeric(),
+  "r-squared" = numeric())
+
+for (x in 1:nrow(pitch_codes)) {
+  
+  for(y in c(2022, 2023)) {
+    
+  coors_regression_data <- combined_pitch_data |> 
+    qualified_pitchers(100, details.type.code == pitch_codes$details.type.code[[x]]) |> 
+    filter(isPitch,
+           pitchNumber != 1,
+           pitch_tempo < 120, 
+           year == {{y}}) |> 
+    left_join(altitude_data, by = join_by(home_team)) |> 
+    mutate(abbr = ifelse(abbr == "COL", 1, 0)) |> 
+    select(matchup.pitcher.fullName, pitch_tempo, park_name, abbr, pitchData.startSpeed, pitchData.breaks.spinRate)
+  
+  
+  coors_regression <- lm(pitchData.startSpeed ~ pitch_tempo + pitch_tempo:abbr + matchup.pitcher.fullName - 1, 
+                         data = coors_regression_data)
+  
+  
+  coors_summary <- summary(coors_regression)
+  
+  coors_results_table <- rbind(coors_results_table, tibble(
+    "pitch_type" = pitch_codes$details.type.description[[x]],
+    "year" = y,
+    "pitch_tempo_coefficient" = round(coors_summary$coefficients[1, "Estimate"],3),
+    "pitch_tempo_p_value" = round(coors_summary$coefficients[1, "Pr(>|t|)"],3),
+    "pitch_tempo_abbr_coefficient" = round(coors_summary$coefficients["pitch_tempo:abbr", "Estimate"],4),
+    "pitch_tempo_abbr_p_value" = round(coors_summary$coefficients["pitch_tempo:abbr", "Pr(>|t|)"], 3),
+    "r-squared" = round(coors_summary$r.squared,3)
+    )
+  )
+}
+}
+
+coors_results_table |> 
+  datatable(
+    colnames = c("Pitch type", "Season", "Pitch tempo coefficient", "Pitch tempo p-value", 
+                 "Pitch tempo & Coors interaction coefficient", "Pitch tempo & Coors interaction p-value", "R-squared")
+  )
+```
+
+It appears that there is some relationship between pitch tempo and pitch velocity, with between 0.008 and 0.022 mph added for every extra second between pitches, depending on the pitch and season. Additionally, the pitch tempo coefficient increases from 2022 to 2023 for all nine pitch types.
+
+
+
+
+
+
+
